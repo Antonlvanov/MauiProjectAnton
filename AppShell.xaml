@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="MauiProjectAnton.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:local="clr-namespace:MauiProjectAnton"
+    Shell.FlyoutBehavior="Disabled"
+    Title="MauiProjectAnton">
+
+    <Shell.TitleView>
+        <Label
+        Text="Test App"
+        FontFamily="luffio Regular 400"
+        FontSize="Title"
+        TextColor="Black"
+        VerticalTextAlignment="Center"
+        VerticalOptions="Center"
+        HorizontalOptions="Start"
+        Padding="25,0,0,0"
+        HeightRequest="50" 
+    />
+    </Shell.TitleView>
+
+    <ShellContent
+        Title="Home"
+        ContentTemplate="{DataTemplate local:StartPage}"
+        Route="StartPage" />
+</Shell>
