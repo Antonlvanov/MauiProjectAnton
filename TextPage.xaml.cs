@@ -1,4 +1,4 @@
-namespace MauiProjectAnton;
+﻿namespace MauiProjectAnton;
 
 public partial class TextPage : ContentPage
 {
@@ -7,8 +7,9 @@ public partial class TextPage : ContentPage
     HorizontalStackLayout hsl;
     List<string> buttons = new List<string> { "Tagasi", "Avaleht", "Edasi" };
     Random rnd = new Random();
-    public TextPage(int k)
+    public TextPage()
     {
+        InitializeComponent();
         lbl = new Label
         {
             Text = "Pealkiri",
@@ -38,7 +39,6 @@ public partial class TextPage : ContentPage
             Button b = new Button
             {
                 Text = buttons[i],
-                ZIndex = i,
                 WidthRequest = DeviceDisplay.Current.MainDisplayInfo.Width / 8.3,
             };
             hsl.Add(b);
@@ -59,18 +59,22 @@ public partial class TextPage : ContentPage
 
     private async void Liikumine(object? sender, EventArgs e)
     {
-        Button btn = (Button)sender;
-        if (btn.ZIndex == 0)
+        try
         {
-            await Navigation.PushAsync(new TextPage(btn.ZIndex));
+            var btn = (Button)sender;
+            var route = btn.Text switch
+            {
+                "Tagasi" => nameof(TextPage),
+                "Avaleht" => "///StartPage",
+                "Edasi" => nameof(FigurePage),
+                _ => nameof(StartPage)
+            };
+
+            await Shell.Current.GoToAsync(route);
         }
-        else if (btn.ZIndex == 1)
+        catch (Exception ex)
         {
-            await Navigation.PushAsync(new StartPage());
-        }
-        else
-        {
-            await Navigation.PushAsync(new FigurePage(btn.ZIndex));
+            await DisplayAlert("Viga", $"Navigeerimine ebaõnnestus: {ex.Message}", "OK");
         }
     }
 
@@ -87,8 +91,4 @@ public partial class TextPage : ContentPage
         editor.TextChanged += Ed_TextChanged;
     }
 
-    private async void Tagasi_Clicked(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new MainPage());
-    }
 }

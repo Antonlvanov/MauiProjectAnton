@@ -9,8 +9,10 @@ public partial class FigurePage : ContentPage
     List<string> buttons = new List<string> { "Tagasi", "Avaleht", "Edasi" };
     int click = 0;
 
-    public FigurePage(int k)
+    public FigurePage()
     {
+        InitializeComponent();
+
         int r = rnd.Next(0, 255);
         int g = rnd.Next(0, 255);
         int b = rnd.Next(0, 255);
@@ -43,7 +45,6 @@ public partial class FigurePage : ContentPage
             Button nupp = new Button
             {
                 Text = buttons[i],
-                ZIndex = i,
                 WidthRequest = DeviceDisplay.Current.MainDisplayInfo.Width / 8.3,
             };
 
@@ -81,22 +82,16 @@ public partial class FigurePage : ContentPage
 
     private async void Liikumine(object? sender, EventArgs e)
     {
-        Button btn = (Button)sender;
-        if (btn.ZIndex == 0)
+        var btn = (Button)sender;
+        var route = btn.Text switch
         {
-            await Navigation.PushAsync(new TextPage(btn.ZIndex));
-        }
-        else if (btn.ZIndex == 1)
-        {
-            await Navigation.PushAsync(new StartPage());
-        }
-        else
-        {
-            await Navigation.PushAsync(new FigurePage(btn.ZIndex));
-        }
+            "Tagasi" => nameof(TextPage),
+            "Avaleht" => "..", // Возврат к корневой странице
+            "Edasi" => nameof(TimerPage),
+            _ => nameof(StartPage)
+        };
+
+        await Shell.Current.GoToAsync(route);
     }
-    private async void Tagasi_Clicked(object sender, EventArgs e)
-    {
-        await Navigation.PushAsync(new MainPage());
-    }
+
 }
