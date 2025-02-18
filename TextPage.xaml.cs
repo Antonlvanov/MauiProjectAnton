@@ -1,94 +1,88 @@
-﻿namespace MauiProjectAnton;
-
-public partial class TextPage : ContentPage
+﻿namespace MauiProjectAnton
 {
-    Label lbl;
-    Editor editor;
-    HorizontalStackLayout hsl;
-    List<string> buttons = new List<string> { "Tagasi", "Avaleht", "Edasi" };
-    Random rnd = new Random();
-    public TextPage()
+    public partial class TextPage : ContentPage
     {
-        InitializeComponent();
-        lbl = new Label
-        {
-            Text = "Pealkiri",
-            TextColor = Color.FromRgb(100, 10, 10),
-            FontFamily = "Luckymoon 400",
-            FontAttributes = FontAttributes.Bold,
-            TextDecorations = TextDecorations.Underline,
-            HorizontalTextAlignment = TextAlignment.Center,
-            VerticalTextAlignment = TextAlignment.Center,
-            FontSize = 28,
-        };
-        editor = new Editor
-        {
-            Placeholder = "Vihje: Sisesta siia tekst",
-            PlaceholderColor = Color.FromRgb(250, 200, 100),
-            BackgroundColor = Color.FromRgb(200, 200, 100),
-            TextColor = Color.FromRgb(100, 50, 200),
-            FontSize = 28,
-            FontAttributes = FontAttributes.Italic,
-        };
+        // Список для хранения строк с назначенными случайными цветами.
+        private List<(string Text, Color Color)> enteredLines = new List<(string, Color)>();
 
-        editor.TextChanged += Teksti_sisestamine;
-        hsl = new HorizontalStackLayout { };
+        // Экземпляр генератора случайных чисел.
+        private readonly Random rnd = new Random();
 
-        for (int i = 0; i < 3; i++)
+        public TextPage()
         {
-            Button b = new Button
+            InitializeComponent();
+            Editor.TextChanged += OnEditorTextChanged;
+        }
+
+        /// <summary>
+        /// Генерация случайного цвета.
+        /// </summary>
+        private Color GetRandomColor()
+        {
+            return Color.FromRgb(rnd.Next(256), rnd.Next(256), rnd.Next(256));
+        }
+
+        /// <summary>
+        /// Обработка изменения текста в Editor.
+        /// Если обнаружен символ перевода строки, строка сохраняется с назначенным цветом,
+        /// поле ввода очищается, а Label обновляется.
+        /// </summary>
+        private void OnEditorTextChanged(object sender, TextChangedEventArgs e)
+        {
+            // Если введенный текст заканчивается символом новой строки,
+            // считаем, что пользователь завершил ввод строки.
+            if (!string.IsNullOrEmpty(e.NewTextValue) && e.NewTextValue.EndsWith("\n"))
             {
-                Text = buttons[i],
-                WidthRequest = DeviceDisplay.Current.MainDisplayInfo.Width / 8.3,
-            };
-            hsl.Add(b);
-            b.Clicked += Liikumine;
-        }
+                // Убираем символ новой строки (и возможные пробелы в конце)
+                var inputLine = e.NewTextValue.TrimEnd('\n', '\r');
+                if (!string.IsNullOrWhiteSpace(inputLine))
+                {
+                    // Сохраняем строку с случайным цветом.
+                    enteredLines.Add((inputLine, GetRandomColor()));
+                }
+                // Очищаем поле ввода.
+                Editor.Text = string.Empty;
+            }
 
-        VerticalStackLayout vst = new VerticalStackLayout
-        {
-            Children = { lbl, editor, hsl },
-            VerticalOptions = LayoutOptions.End
-        };
-        Content = vst;
-    }
-    private void Teksti_sisestamine(object? sender, TextChangedEventArgs e)
-    {
-        lbl.Text = editor.Text;
-    }
+            // Обновляем отображение в TitleLabel.
+            // Формируем FormattedString из сохранённых строк и текущего ввода.
+            var formatted = new FormattedString();
 
-    private async void Liikumine(object? sender, EventArgs e)
-    {
-        try
-        {
-            var btn = (Button)sender;
-            var route = btn.Text switch
+            foreach (var line in enteredLines)
             {
-                "Tagasi" => nameof(TextPage),
-                "Avaleht" => "///StartPage",
-                "Edasi" => nameof(FigurePage),
-                _ => nameof(StartPage)
-            };
+                formatted.Spans.Add(new Span { Text = line.Text + "\n", TextColor = line.Color });
+            }
 
-            await Shell.Current.GoToAsync(route);
+            // Отображаем текущий ввод (если он есть) стандартным цветом.
+            if (!string.IsNullOrEmpty(Editor.Text))
+            {
+                formatted.Spans.Add(new Span { Text = Editor.Text, TextColor = Colors.Black });
+            }
+
+            TitleLabel.FormattedText = formatted;
         }
-        catch (Exception ex)
+
+        private async void Liikumine(object sender, EventArgs e)
         {
-            await DisplayAlert("Viga", $"Navigeerimine ebaõnnestus: {ex.Message}", "OK");
+            try
+            {
+                if (sender is Button btn)
+                {
+                    var route = btn.Text switch
+                    {
+                        "Tagasi" => nameof(TextPage),
+                        "Avaleht" => "///StartPage",
+                        "Edasi" => nameof(FigurePage),
+                        _ => nameof(StartPage)
+                    };
+
+                    await Shell.Current.GoToAsync(route);
+                }
+            }
+            catch (Exception ex)
+            {
+                await DisplayAlert("Viga", $"Navigeerimine ebaõnnestus: {ex.Message}", "OK");
+            }
         }
     }
-
-    int i = 0;
-    private void Ed_TextChanged(object sender, TextChangedEventArgs e)
-    {
-        editor.TextChanged -= Ed_TextChanged;
-        char key = e.NewTextValue?.LastOrDefault() ?? ' ';
-        if (key == 'A')
-        {
-            i++;
-            editor.Text = i.ToString() + ": " + i;
-        }
-        editor.TextChanged += Ed_TextChanged;
-    }
-
 }
