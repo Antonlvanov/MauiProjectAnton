@@ -3,10 +3,77 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiProjectAnton.FigurePage"
              Title="FigurePage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <VerticalStackLayout Grid.Row="0" Spacing="20" Padding="20">
+            <Label 
+                x:Name="ClickLabel"
+                Text="Klikid: 0"
+                FontSize="24"
+                TextColor="#323232"
+                HorizontalOptions="Center" />
+
+            <BoxView 
+                x:Name="ColorBox"
+                CornerRadius="20"
+                WidthRequest="200"
+                HeightRequest="200"
+                HorizontalOptions="Center"
+                VerticalOptions="Center"
+                Color="Blue">
+                <BoxView.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="Klik_boksi_peal" />
+                </BoxView.GestureRecognizers>
+            </BoxView>
+        </VerticalStackLayout>
+
+        <HorizontalStackLayout 
+            Grid.Row="1"
+            Spacing="10"
+            HorizontalOptions="Center"
+            VerticalOptions="End"
+            Padding="10"
+            BackgroundColor="Transparent">
+
+            <Button 
+                Text="Tagasi"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                </Button.Shadow>
+            </Button>
+
+            <Button 
+                Text="Avaleht"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                </Button.Shadow>
+            </Button>
+
+            <Button 
+                Text="Edasi"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                </Button.Shadow>
+            </Button>
+        </HorizontalStackLayout>
+    </Grid>
 </ContentPage>

@@ -28,31 +28,31 @@ public partial class TimerPage : ContentPage
                 Margin = new Thickness(5)
             };
 
-            button.Clicked += NavigateHandler;
+            button.Clicked += Liikumine;
             hsl.Add(button);
         }
-
-        rootLayout.Add(hsl);
     }
 
-    private async void NavigateHandler(object sender, EventArgs e)
+    private async void Liikumine(object sender, EventArgs e)
     {
         try
         {
-            var btn = (Button)sender;
-            var route = btn.Text switch
+            if (sender is Button btn)
             {
-                "Tagasi" => nameof(FigurePage),
-                "Avaleht" => "///StartPage",
-                "Edasi" => nameof(TimerPage),
-                _ => nameof(StartPage)
-            };
+                var route = btn.Text switch
+                {
+                    "Tagasi" => nameof(FigurePage),
+                    "Avaleht" => "///StartPage",
+                    "Edasi" => nameof(TimerPage),
+                    _ => nameof(StartPage)
+                };
 
-            await Shell.Current.GoToAsync(route);
+                await Shell.Current.GoToAsync(route);
+            }
         }
         catch (Exception ex)
         {
-            await DisplayAlert("Viga", ex.Message, "OK");
+            await DisplayAlert("Viga", $"Navigeerimine ebaõnnestus: {ex.Message}", "OK");
         }
     }
 

@@ -12,16 +12,12 @@
 
     <Grid>
         <Grid.RowDefinitions>
-            <!-- Контент занимает всё оставшееся пространство -->
             <RowDefinition Height="*" />
-            <!-- Меню навигации занимает столько места, сколько нужно -->
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <!-- Основной контент -->
         <ScrollView Grid.Row="0">
             <VerticalStackLayout Spacing="20" Padding="20">
-                <!-- Заголовок -->
                 <Label 
                     x:Name="TitleLabel"
                     Text="Teksti Sisestamine"
@@ -32,7 +28,6 @@
                     VerticalOptions="Start"
                     Opacity="1" />
 
-                <!-- Поле для ввода текста -->
                 <Editor
                     x:Name="Editor"
                     Placeholder="Sisesta siia oma tekst..."
@@ -47,44 +42,45 @@
             </VerticalStackLayout>
         </ScrollView>
 
-        <!-- Меню навигации внизу страницы, центрированное -->
-        <HorizontalStackLayout Grid.Row="1"
-                       Spacing="10"
-                       HorizontalOptions="Center"
-                       VerticalOptions="End"
-                       Padding="10"
-                       BackgroundColor="Transparent">
+        <HorizontalStackLayout 
+            Grid.Row="1"
+            Spacing="10"
+            HorizontalOptions="Center"
+            VerticalOptions="End"
+            Padding="10"
+            BackgroundColor="Transparent">
+            
             <Button 
-        Text="Tagasi"
-        BackgroundColor="Black"
-        TextColor="White"
-        CornerRadius="10"
-        Padding="20,10"
-        Clicked="Liikumine">
+                Text="Tagasi"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
                 <Button.Shadow>
                     <Shadow Brush="#000000" Offset="5,5" Radius="10" />
                 </Button.Shadow>
             </Button>
 
             <Button 
-        Text="Avaleht"
-        BackgroundColor="Black"
-        TextColor="White"
-        CornerRadius="10"
-        Padding="20,10"
-        Clicked="Liikumine">
+                Text="Avaleht"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
                 <Button.Shadow>
                     <Shadow Brush="#000000" Offset="5,5" Radius="10" />
                 </Button.Shadow>
             </Button>
 
             <Button 
-        Text="Edasi"
-        BackgroundColor="Black"
-        TextColor="White"
-        CornerRadius="10"
-        Padding="20,10"
-        Clicked="Liikumine">
+                Text="Edasi"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">    
                 <Button.Shadow>
                     <Shadow Brush="#000000" Offset="5,5" Radius="10" />
                 </Button.Shadow>

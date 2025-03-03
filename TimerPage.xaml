@@ -3,20 +3,72 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiProjectAnton.TimerPage"
              Title="TimerPage">
-    <VerticalStackLayout x:Name="rootLayout" Spacing="20">
-        <FlexLayout AlignItems="Center" JustifyContent="Center">
-            <Label x:Name="lbl"
-                   Text="Valjuta nuppule ja siia"
-                   FontSize="Medium"
-                   BackgroundColor="Beige">
-                <Label.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
-                </Label.GestureRecognizers>
-            </Label>
-            <Button x:Name="timer_btn"
-                    Text="Naita info"
-                    FontSize="Large"
-                    Clicked="timer_btn_Clicked"/>
-        </FlexLayout>
-    </VerticalStackLayout>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <VerticalStackLayout Grid.Row="0" Spacing="20">
+            <FlexLayout AlignItems="Center" JustifyContent="Center">
+                <Label x:Name="lbl"
+                       Text="Valjuta nuppule ja siia"
+                       FontSize="Medium"
+                       BackgroundColor="Beige">
+                    <Label.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
+                    </Label.GestureRecognizers>
+                </Label>
+                <Button x:Name="timer_btn"
+                        Text="Naita info"
+                        FontSize="Large"
+                        Clicked="timer_btn_Clicked"/>
+            </FlexLayout>
+        </VerticalStackLayout>
+
+        <HorizontalStackLayout 
+            Grid.Row="1"
+            Spacing="10"
+            HorizontalOptions="Center"
+            VerticalOptions="End"
+            Padding="10"
+            BackgroundColor="Transparent">
+
+            <Button 
+                Text="Tagasi"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                </Button.Shadow>
+            </Button>
+
+            <Button 
+                Text="Avaleht"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                </Button.Shadow>
+            </Button>
+
+            <Button 
+                Text="Edasi"
+                BackgroundColor="Black"
+                TextColor="White"
+                CornerRadius="10"
+                Padding="20,10"
+                Clicked="Liikumine">
+                <Button.Shadow>
+                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                </Button.Shadow>
+            </Button>
+        </HorizontalStackLayout>
+    </Grid>
 </ContentPage>
