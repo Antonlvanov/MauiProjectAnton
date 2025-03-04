@@ -9,21 +9,49 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <VerticalStackLayout Grid.Row="0" Spacing="20">
-            <FlexLayout AlignItems="Center" JustifyContent="Center">
-                <Label x:Name="lbl"
-                       Text="Valjuta nuppule ja siia"
-                       FontSize="Medium"
-                       BackgroundColor="Beige">
+        <VerticalStackLayout Grid.Row="0" Spacing="20" VerticalOptions="Center">
+            <Grid VerticalOptions="Center" HorizontalOptions="Center">
+                <!-- Gradient background circle -->
+                <Frame x:Name="gradientFrame"
+                       WidthRequest="250"
+                       HeightRequest="250"
+                       CornerRadius="125"
+                       Padding="0"
+                       HasShadow="True">
+                    <Frame.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="#2196F3" Offset="0.1"/>
+                            <GradientStop Color="#E91E63" Offset="0.9"/>
+                        </LinearGradientBrush>
+                    </Frame.Background>
+                </Frame>
+
+                <!-- Time display -->
+                <Label x:Name="timerLabel"
+                       Text="00:00:00"
+                       FontSize="36"
+                       FontAttributes="Bold"
+                       FontFamily="Courier New"
+                       TextColor="White"
+                       HorizontalOptions="Center" 
+                       VerticalOptions="Center">
+                    <Label.Shadow>
+                        <Shadow Brush="#80000000" Offset="2,2" Radius="4"/>
+                    </Label.Shadow>
                     <Label.GestureRecognizers>
                         <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
                     </Label.GestureRecognizers>
                 </Label>
+
+                <!-- Invisible toggle button -->
                 <Button x:Name="timer_btn"
-                        Text="Naita info"
-                        FontSize="Large"
-                        Clicked="timer_btn_Clicked"/>
-            </FlexLayout>
+                        Text=""
+                        BackgroundColor="Transparent"
+                        Clicked="timer_btn_Clicked"
+                        WidthRequest="250"
+                        HeightRequest="250"
+                        CornerRadius="125"/>
+            </Grid>
         </VerticalStackLayout>
 
         <HorizontalStackLayout 
@@ -42,7 +70,7 @@
                 Padding="20,10"
                 Clicked="Liikumine">
                 <Button.Shadow>
-                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                    <Shadow Brush="#80000000" Offset="5,5" Radius="10" />
                 </Button.Shadow>
             </Button>
 
@@ -54,7 +82,7 @@
                 Padding="20,10"
                 Clicked="Liikumine">
                 <Button.Shadow>
-                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                    <Shadow Brush="#80000000" Offset="5,5" Radius="10" />
                 </Button.Shadow>
             </Button>
 
@@ -66,7 +94,7 @@
                 Padding="20,10"
                 Clicked="Liikumine">
                 <Button.Shadow>
-                    <Shadow Brush="#000000" Offset="5,5" Radius="10" />
+                    <Shadow Brush="#80000000" Offset="5,5" Radius="10" />
                 </Button.Shadow>
             </Button>
         </HorizontalStackLayout>

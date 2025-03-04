@@ -3,34 +3,12 @@ namespace MauiProjectAnton;
 public partial class TimerPage : ContentPage
 {
     private bool _isTimerRunning;
-    private readonly List<string> _buttons = new() { "Tagasi", "Avaleht", "Edasi" };
+    private Animation _gradientAnimation;
 
     public TimerPage()
     {
         InitializeComponent();
-        InitializeNavigationButtons();
-    }
-
-    private void InitializeNavigationButtons()
-    {
-        var hsl = new HorizontalStackLayout
-        {
-            Spacing = 10,
-            HorizontalOptions = LayoutOptions.Center
-        };
-
-        foreach (var buttonText in _buttons)
-        {
-            var button = new Button
-            {
-                Text = buttonText,
-                WidthRequest = 120,
-                Margin = new Thickness(5)
-            };
-
-            button.Clicked += Liikumine;
-            hsl.Add(button);
-        }
+        timerLabel.Text = DateTime.Now.ToString("T");
     }
 
     private async void Liikumine(object sender, EventArgs e)
@@ -60,7 +38,7 @@ public partial class TimerPage : ContentPage
     {
         while (_isTimerRunning)
         {
-            timer_btn.Text = DateTime.Now.ToString("T");
+            timerLabel.Text = DateTime.Now.ToString("T");
             await Task.Delay(1000);
         }
     }
@@ -69,11 +47,35 @@ public partial class TimerPage : ContentPage
     {
         _isTimerRunning = !_isTimerRunning;
         if (_isTimerRunning)
+        {
             ShowTime();
+            StartGradientAnimation();
+        }
+        else
+        {
+            StopGradientAnimation();
+        }
+    }
+
+    private void StartGradientAnimation()
+    {
+        _gradientAnimation = new Animation(v => gradientFrame.Rotation = v, 0, 360);
+        _gradientAnimation.Commit(
+            owner: gradientFrame,
+            name: "gradientRotation",
+            rate: 16,
+            length: 2000,
+            easing: Easing.Linear,
+            repeat: () => _isTimerRunning);
+    }
+
+    private void StopGradientAnimation()
+    {
+        gradientFrame.AbortAnimation("gradientRotation");
     }
 
     private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
     {
-        // Добавьте свою логику здесь
+        timer_btn_Clicked(sender, e);
     }
 }
