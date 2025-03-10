@@ -2,101 +2,70 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiProjectAnton.TimerPage"
-             Title="TimerPage">
+             Title="Таймер">
+
+    <ContentPage.Background>
+        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="black" Offset="0" />
+            <GradientStop Color="grey" Offset="1" />
+        </LinearGradientBrush>
+    </ContentPage.Background>
+    
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <VerticalStackLayout Grid.Row="0" Spacing="20" VerticalOptions="Center">
-            <Grid VerticalOptions="Center" HorizontalOptions="Center">
-                <!-- Gradient background circle -->
-                <Frame x:Name="gradientFrame"
-                       WidthRequest="250"
-                       HeightRequest="250"
-                       CornerRadius="125"
-                       Padding="0"
-                       HasShadow="True">
-                    <Frame.Background>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                            <GradientStop Color="#2196F3" Offset="0.1"/>
-                            <GradientStop Color="#E91E63" Offset="0.9"/>
-                        </LinearGradientBrush>
-                    </Frame.Background>
-                </Frame>
-
-                <!-- Time display -->
+        <Grid Grid.Row="0" VerticalOptions="Center">
+            <Frame x:Name="gradientFrame"
+                   WidthRequest="300"
+                   HeightRequest="120"
+                   CornerRadius="150"
+                   Padding="0"
+                   HasShadow="True"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
+                <Frame.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="black" Offset="0.1"/>
+                        <GradientStop Color="Gray" Offset="0.9"/>
+                    </LinearGradientBrush>
+                </Frame.Background>
                 <Label x:Name="timerLabel"
-                       Text="00:00:00"
-                       FontSize="36"
-                       FontAttributes="Bold"
-                       FontFamily="Courier New"
-                       TextColor="White"
-                       HorizontalOptions="Center" 
-                       VerticalOptions="Center">
+                   Text="00:00:00.00"
+                   FontSize="36"
+                   FontAttributes="Bold"
+                   TextColor="White"
+                   HorizontalOptions="Center"
+                   VerticalOptions="Center">
                     <Label.Shadow>
-                        <Shadow Brush="#80000000" Offset="2,2" Radius="4"/>
+                        <Shadow Brush="#80000000" Offset="3,3" Radius="5"/>
                     </Label.Shadow>
-                    <Label.GestureRecognizers>
-                        <TapGestureRecognizer Tapped="TapGestureRecognizer_Tapped" />
-                    </Label.GestureRecognizers>
                 </Label>
+            </Frame>
+        </Grid>
 
-                <!-- Invisible toggle button -->
-                <Button x:Name="timer_btn"
-                        Text=""
-                        BackgroundColor="Transparent"
-                        Clicked="timer_btn_Clicked"
-                        WidthRequest="250"
-                        HeightRequest="250"
-                        CornerRadius="125"/>
-            </Grid>
-        </VerticalStackLayout>
+        <HorizontalStackLayout Grid.Row="1"
+                               Spacing="20"
+                               Padding="20"
+                               HorizontalOptions="Center"
+                               VerticalOptions="End">
+            
+            <Button x:Name="controlButton"
+                    ImageSource="playicon.png"
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    CornerRadius="50"
+                    BackgroundColor="Transparent"
+                    Clicked="ControlButton_Clicked"/>
 
-        <HorizontalStackLayout 
-            Grid.Row="1"
-            Spacing="10"
-            HorizontalOptions="Center"
-            VerticalOptions="End"
-            Padding="10"
-            BackgroundColor="Transparent">
-
-            <Button 
-                Text="Tagasi"
-                BackgroundColor="Black"
-                TextColor="White"
-                CornerRadius="10"
-                Padding="20,10"
-                Clicked="Liikumine">
-                <Button.Shadow>
-                    <Shadow Brush="#80000000" Offset="5,5" Radius="10" />
-                </Button.Shadow>
-            </Button>
-
-            <Button 
-                Text="Avaleht"
-                BackgroundColor="Black"
-                TextColor="White"
-                CornerRadius="10"
-                Padding="20,10"
-                Clicked="Liikumine">
-                <Button.Shadow>
-                    <Shadow Brush="#80000000" Offset="5,5" Radius="10" />
-                </Button.Shadow>
-            </Button>
-
-            <Button 
-                Text="Edasi"
-                BackgroundColor="Black"
-                TextColor="White"
-                CornerRadius="10"
-                Padding="20,10"
-                Clicked="Liikumine">
-                <Button.Shadow>
-                    <Shadow Brush="#80000000" Offset="5,5" Radius="10" />
-                </Button.Shadow>
-            </Button>
+            <Button ImageSource="timericon.png"
+                    WidthRequest="100"
+                    HeightRequest="100"
+                    CornerRadius="50"
+                    BackgroundColor="Transparent"
+                    Clicked="ResetButton_Clicked"/>
         </HorizontalStackLayout>
     </Grid>
 </ContentPage>

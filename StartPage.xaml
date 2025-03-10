@@ -18,6 +18,16 @@
                 Text="Timer Page"
                 Clicked="NavigateToTimerPage"
                 Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="Valgusfoor"
+                Clicked="NavigateToValgusfoorPage"
+                Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="Test"
+                Clicked="NavigateToTestPage"
+                Style="{StaticResource NavButton}"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

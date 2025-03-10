@@ -1,81 +1,52 @@
-namespace MauiProjectAnton;
+ï»¿namespace MauiProjectAnton;
 
 public partial class TimerPage : ContentPage
 {
-    private bool _isTimerRunning;
-    private Animation _gradientAnimation;
+    private bool _isRunning;
+    private DateTime _startTime;
+    private TimeSpan _elapsedTime;
 
     public TimerPage()
     {
         InitializeComponent();
-        timerLabel.Text = DateTime.Now.ToString("T");
+        UpdateTimeDisplay(TimeSpan.Zero);
     }
 
-    private async void Liikumine(object sender, EventArgs e)
+    private async void TimerLoop()
     {
-        try
+        _startTime = DateTime.Now - _elapsedTime;
+        while (_isRunning)
         {
-            if (sender is Button btn)
-            {
-                var route = btn.Text switch
-                {
-                    "Tagasi" => nameof(FigurePage),
-                    "Avaleht" => "///StartPage",
-                    "Edasi" => nameof(TimerPage),
-                    _ => nameof(StartPage)
-                };
-
-                await Shell.Current.GoToAsync(route);
-            }
-        }
-        catch (Exception ex)
-        {
-            await DisplayAlert("Viga", $"Navigeerimine ebaõnnestus: {ex.Message}", "OK");
+            _elapsedTime = DateTime.Now - _startTime;
+            UpdateTimeDisplay(_elapsedTime);
+            await Task.Delay(100);
         }
     }
 
-    private async void ShowTime()
+    private void UpdateTimeDisplay(TimeSpan time)
     {
-        while (_isTimerRunning)
-        {
-            timerLabel.Text = DateTime.Now.ToString("T");
-            await Task.Delay(1000);
-        }
+        timerLabel.Text = time.ToString(@"hh\:mm\:ss\.ff");
     }
 
-    private void timer_btn_Clicked(object sender, EventArgs e)
+    private void ControlButton_Clicked(object sender, EventArgs e)
     {
-        _isTimerRunning = !_isTimerRunning;
-        if (_isTimerRunning)
+        _isRunning = !_isRunning;
+        if (_isRunning)
         {
-            ShowTime();
-            StartGradientAnimation();
+            TimerLoop();
+            controlButton.ImageSource="stopicon.png";
         }
         else
         {
-            StopGradientAnimation();
+            controlButton.ImageSource = "playicon.png";
         }
     }
 
-    private void StartGradientAnimation()
+    private void ResetButton_Clicked(object sender, EventArgs e)
     {
-        _gradientAnimation = new Animation(v => gradientFrame.Rotation = v, 0, 360);
-        _gradientAnimation.Commit(
-            owner: gradientFrame,
-            name: "gradientRotation",
-            rate: 16,
-            length: 2000,
-            easing: Easing.Linear,
-            repeat: () => _isTimerRunning);
+        _isRunning = false;
+        _elapsedTime = TimeSpan.Zero;
+        UpdateTimeDisplay(TimeSpan.Zero);
     }
 
-    private void StopGradientAnimation()
-    {
-        gradientFrame.AbortAnimation("gradientRotation");
-    }
-
-    private void TapGestureRecognizer_Tapped(object sender, TappedEventArgs e)
-    {
-        timer_btn_Clicked(sender, e);
-    }
 }
