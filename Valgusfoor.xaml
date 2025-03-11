@@ -5,15 +5,11 @@
              BackgroundColor="#1a1a1a">
 
     <Grid>
-        <!-- Определяем строки: одна для светофора, другая для кнопок -->
         <Grid.RowDefinitions>
             <RowDefinition Height="750" />
-            <!-- Светофор -->
             <RowDefinition Height="Auto" />
-            <!-- Кнопки управления -->
         </Grid.RowDefinitions>
 
-        <!-- Фон (не должен блокировать нажатия) -->
         <Image Source="valgusfoorv3.jpg"
                Aspect="AspectFit"
                HorizontalOptions="Fill"
@@ -21,7 +17,6 @@
                ZIndex="0"
                InputTransparent="True"/>
 
-        <!-- Светофор -->
         <Frame Grid.Row="0"
                ZIndex="1"
                WidthRequest="411"
@@ -76,7 +71,6 @@
             </VerticalStackLayout>
         </Frame>
 
-        <!-- Кнопка управления -->
         <HorizontalStackLayout Grid.Row="1"
                                ZIndex="2"
                                Padding="20"
