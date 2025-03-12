@@ -25,6 +25,11 @@
                 Style="{StaticResource NavButton}"/>
 
             <Button 
+                Text="Lumememm"
+                Clicked="NavigateToLumememmPage"
+                Style="{StaticResource NavButton}"/>    
+
+            <Button 
                 Text="Test"
                 Clicked="NavigateToTestPage"
                 Style="{StaticResource NavButton}"/>

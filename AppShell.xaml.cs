@@ -16,6 +16,7 @@
             Routing.RegisterRoute(nameof(TimerPage), typeof(TimerPage));
             Routing.RegisterRoute(nameof(Valgusfoor), typeof(Valgusfoor));
             Routing.RegisterRoute(nameof(Test), typeof(Test));
+            Routing.RegisterRoute(nameof(Lumememm), typeof(Lumememm));
         }
     }
 }
