@@ -204,21 +204,25 @@ public partial class Lumememm : ContentPage
 
     void UpdateArmPositions(double bodyY, double bodyNewHeight)
     {
-        if (int.TryParse(bodyY + rightArm.Height - bodyNewHeight) + bodyNewHeight !> originalBounds[lowerBody])
-        {
+        var lowerBodyBounds = AbsoluteLayout.GetLayoutBounds(lowerBody);
+        double lowerBodyBottom = lowerBodyBounds.Y + lowerBodyBounds.Height;
 
-        }
+        double rightArmNewY = bodyY + rightArm.Height - bodyNewHeight;
+        rightArmNewY = Math.Min(rightArmNewY, lowerBodyBottom - rightArm.Height);
 
         AbsoluteLayout.SetLayoutBounds(rightArm, new Rect(
             rightArm.X,
-            bodyY + rightArm.Height - bodyNewHeight,
+            rightArmNewY,
             rightArm.Width,
             rightArm.Height
         ));
 
+        double leftArmNewY = bodyY + leftArm.Height - bodyNewHeight;
+        leftArmNewY = Math.Min(leftArmNewY, lowerBodyBottom - leftArm.Height);
+
         AbsoluteLayout.SetLayoutBounds(leftArm, new Rect(
             leftArm.X,
-            bodyY + rightArm.Height - bodyNewHeight,
+            leftArmNewY,
             leftArm.Width,
             leftArm.Height
         ));
@@ -226,16 +230,24 @@ public partial class Lumememm : ContentPage
 
     void UpdateEarPositions(double headY, double headNewHeight)
     {
+        var lowerBodyBounds = AbsoluteLayout.GetLayoutBounds(lowerBody);
+        double lowerBodyBottom = lowerBodyBounds.Y + lowerBodyBounds.Height;
+        double rightEarNewY = headY + rightEar.Height - headNewHeight;
+        rightEarNewY = Math.Min(rightEarNewY, lowerBodyBottom - rightEar.Height);
+
         AbsoluteLayout.SetLayoutBounds(rightEar, new Rect(
             rightEar.X,
-            headY + rightEar.Height - headNewHeight,
+            rightEarNewY,
             rightEar.Width,
             rightEar.Height
         ));
 
+        double leftEarNewY = headY + leftEar.Height - headNewHeight - 40;
+        leftEarNewY = Math.Min(leftEarNewY, lowerBodyBottom - leftEar.Height);
+
         AbsoluteLayout.SetLayoutBounds(leftEar, new Rect(
             leftEar.X,
-            headY + leftEar.Height - headNewHeight - 40,
+            leftEarNewY,
             leftEar.Width,
             leftEar.Height
         ));
