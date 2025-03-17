@@ -1,4 +1,4 @@
-<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="MauiProjectAnton.StartPage"
              Title="Avaleht">
@@ -25,10 +25,20 @@
                 Style="{StaticResource NavButton}"/>
 
             <Button 
+                Text="DateTime Page"
+                Clicked="NavigateToDateTimePage"
+                Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="Värvid"
+                Clicked="NavigateToColorPage"
+                Style="{StaticResource NavButton}"/>
+            
+            <Button 
                 Text="Lumememm"
                 Clicked="NavigateToLumememmPage"
-                Style="{StaticResource NavButton}"/>    
-
+                Style="{StaticResource NavButton}"/>
+      
             <Button 
                 Text="Test"
                 Clicked="NavigateToTestPage"

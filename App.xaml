@@ -3,7 +3,9 @@
              x:Class="MauiProjectAnton.App">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Стиль для кнопок навигации -->
+            <Style TargetType="ContentPage">
+                <Setter Property="BackgroundColor" Value="White" />
+            </Style>
             <Style x:Key="NavButton" TargetType="Button">
                 <Setter Property="BackgroundColor" Value="Black" />
                 <Setter Property="TextColor" Value="White" />
