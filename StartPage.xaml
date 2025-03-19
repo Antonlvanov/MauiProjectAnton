@@ -38,10 +38,15 @@
                 Text="Lumememm"
                 Clicked="NavigateToLumememmPage"
                 Style="{StaticResource NavButton}"/>
-      
+
             <Button 
                 Text="Test"
-                Clicked="NavigateToTestPage"
+                Clicked="NavigateToPickerImagePage"
+                Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="Test"
+                Clicked="NavigateToPopUpPage"
                 Style="{StaticResource NavButton}"/>
         </VerticalStackLayout>
     </ScrollView>

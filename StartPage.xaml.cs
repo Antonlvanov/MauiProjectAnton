@@ -63,6 +63,21 @@ public partial class StartPage : ContentPage
         await button.ScaleTo(1, 50, Easing.Linear);
     }
 
+    private async void NavigateToPopUpPage(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        await button.ScaleTo(0.95, 50, Easing.Linear);
+        await Shell.Current.GoToAsync(nameof(PopUpPage));
+        await button.ScaleTo(1, 50, Easing.Linear);
+    }
+    private async void NavigateToPickerImagePage(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        await button.ScaleTo(0.95, 50, Easing.Linear);
+        await Shell.Current.GoToAsync(nameof(PickerImagePage));
+        await button.ScaleTo(1, 50, Easing.Linear);
+    }
+
     private async void NavigateToTripsTrapsPage(object sender, EventArgs e)
     {
         var button = sender as Button;
