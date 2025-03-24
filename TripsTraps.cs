@@ -17,7 +17,7 @@ public class TripsTraps : ContentPage
     public TripsTraps()
     {
         Title = "Trips traps trull";
-        BackgroundColor = Colors.DarkGray;
+        BackgroundColor = Colors.LightGray;
         MakeUI();
         gridSizePicker.SelectedIndexChanged += OnGridSizeChanged;
         MakeCells();
@@ -51,35 +51,61 @@ public class TripsTraps : ContentPage
         };
 
         // pickers
+
         playersPicker = new Picker
         {
             Title = "Mängijad",
             Items = { "1 Mängija", "2 Mängijad" },
-            HorizontalOptions = LayoutOptions.FillAndExpand,
-            Margin = new Thickness(15)
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Center,
+            BackgroundColor = Colors.DarkGray,
+            TextColor = Colors.Green,
+            FontSize = 20,
+            Margin = new Thickness(10),
+            TitleColor = Colors.Gray,
+            ItemDisplayBinding = new Binding(".", stringFormat: "{0}")
         };
-
 
         gridSizePicker = new Picker
         {
             Title = "Võre suurus",
             Items = { "3x3", "4x4", "5x5" },
-            HorizontalOptions = LayoutOptions.FillAndExpand,
-            Margin = new Thickness(5)
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Center,
+            BackgroundColor = Colors.DarkGray,
+            TextColor = Colors.Green,
+            FontSize = 20,
+            Margin = new Thickness(10),
+            TitleColor = Colors.Gray,
+            ItemDisplayBinding = new Binding(".", stringFormat: "{0}")
         };
 
-        var pickersLayout = new StackLayout
+        playersPicker.SelectedIndex = 0;
+        gridSizePicker.SelectedIndex = 0;
+
+        var pickersGrid = new Grid
         {
-            Orientation = StackOrientation.Horizontal,
-            Children = { playersPicker, gridSizePicker },
-            Spacing = 10,
+            ColumnDefinitions =
+            {
+                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) },
+                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) }
+            },
+            ColumnSpacing = 10,
+            Padding = new Thickness(15, 5),
             HorizontalOptions = LayoutOptions.Fill,
-            Padding = new Thickness(10, 0)
+            VerticalOptions = LayoutOptions.Center
         };
-        
+
+        pickersGrid.Children.Add(playersPicker);
+        pickersGrid.Children.Add(gridSizePicker);
+
+        Grid.SetColumn(playersPicker, 0);
+        Grid.SetColumn(gridSizePicker, 1);
+
         // status
         statusImage = new Image
         {
+            Source = "status_icon.png",
             HeightRequest = 30,
             WidthRequest = 30,
             VerticalOptions = LayoutOptions.Center
@@ -87,7 +113,7 @@ public class TripsTraps : ContentPage
 
         statusLabel = new Label
         {
-            Text = "",
+            Text = "Someshit",
             FontSize = 16,
             VerticalTextAlignment = TextAlignment.Center,
             HorizontalOptions = LayoutOptions.StartAndExpand
@@ -99,15 +125,14 @@ public class TripsTraps : ContentPage
             Children = { statusLabel, statusImage },
             Spacing = 10,
             HorizontalOptions = LayoutOptions.Fill,
-            Padding = new Thickness(10, 5),
-            Background = Colors.Grey
+            Padding = new Thickness(10, 5)
         };
 
         // control
         gameControlButton = new Button
         {
             Text = "Alusta",
-            BackgroundColor = Colors.Green,
+            BackgroundColor = Colors.Gray,
             TextColor = Colors.White,
             CornerRadius = 10,
             HorizontalOptions = LayoutOptions.Fill,
@@ -121,9 +146,9 @@ public class TripsTraps : ContentPage
         {
             Children =
             {
-                pickersLayout,
+                pickersGrid,
                 statusLayout,
-                grid,             
+                grid,
                 gameControlButton
             },
             Spacing = 10,
@@ -136,7 +161,7 @@ public class TripsTraps : ContentPage
 
     private void OnGameControlClicked(object sender, EventArgs e)
     {
-        if (gameControlButton.Text == "Start")
+        if (gameControlButton.Text == "Algus")
         {
             gameControlButton.Text = "Tühista";
             gameControlButton.BackgroundColor = Colors.Red;
@@ -145,7 +170,7 @@ public class TripsTraps : ContentPage
         }
         else
         {
-            gameControlButton.Text = "Cancel";
+            gameControlButton.Text = "Algus";
             gameControlButton.BackgroundColor = Colors.Green;
         }
     }
@@ -193,7 +218,6 @@ public class TripsTraps : ContentPage
         }
     }
 
-
     private async void OnCellTapped(Frame cell)
     {
         if (cell.Content is BoxView)
@@ -238,6 +262,9 @@ public class TripsTraps : ContentPage
 
     private void OnGridSizeChanged(object sender, EventArgs e)
     {
-        MakeCells();
+        if (gameControlButton.Text == "Tühista")
+        {
+            MakeCells();
+        }
     }
 }
