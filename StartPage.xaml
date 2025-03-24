@@ -40,13 +40,18 @@
                 Style="{StaticResource NavButton}"/>
 
             <Button 
-                Text="Test"
+                Text="PickerImage"
                 Clicked="NavigateToPickerImagePage"
                 Style="{StaticResource NavButton}"/>
 
             <Button 
-                Text="Test"
+                Text="PopUpPage"
                 Clicked="NavigateToPopUpPage"
+                Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="TripsTraps"
+                Clicked="NavigateToTripsTrapsPage"
                 Style="{StaticResource NavButton}"/>
         </VerticalStackLayout>
     </ScrollView>

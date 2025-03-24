@@ -10,26 +10,27 @@ public partial class Valgusfoor : ContentPage
 {
     AbsoluteLayout absoluteLayout = new AbsoluteLayout();
 
-    private enum LightState { Red, RedYellow, Green, Yellow, Grey }
-    private LightState _currentState;
     private bool _isRunning;
-    private CancellationTokenSource _cts;
+    private CancellationTokenSource cancelToken;
     private Image background, valgusfoor;
 
     private Frame RedLight;
     private Frame YellowLight;
     private Frame GreenLight;
-    private ImageButton ControlButton;
+    private ImageButton ControlButton, NightButton;
     private double pageWidth, pageHeight;
+    private Random rnd;
 
     public Valgusfoor()
     {
         BuildUI();
-        InitializeLights();
+        SetOffColors();
     }
 
     private void BuildUI()
     {
+        rnd = new Random();
+
         BackgroundColor = Color.FromArgb("#1a1a1a");
         pageHeight = (int)(DeviceDisplay.Current.MainDisplayInfo.Height / DeviceDisplay.Current.MainDisplayInfo.Density);
         pageWidth = (int)(DeviceDisplay.Current.MainDisplayInfo.Width / DeviceDisplay.Current.MainDisplayInfo.Density);
@@ -55,13 +56,13 @@ public partial class Valgusfoor : ContentPage
         AbsoluteLayout.SetLayoutBounds(background, new Rect(0.5, 0.5, 1, 1));
         AbsoluteLayout.SetLayoutFlags(background, AbsoluteLayoutFlags.All);
 
-        AbsoluteLayout.SetLayoutBounds(RedLight, new Rect(0.5, 0.09, 195, 200));
+        AbsoluteLayout.SetLayoutBounds(RedLight, new Rect(0.5, 0.06, 195, 200));
         AbsoluteLayout.SetLayoutFlags(RedLight, AbsoluteLayoutFlags.PositionProportional);
 
         AbsoluteLayout.SetLayoutBounds(YellowLight, new Rect(0.5, 0.5, 195, 200));
         AbsoluteLayout.SetLayoutFlags(YellowLight, AbsoluteLayoutFlags.PositionProportional);
 
-        AbsoluteLayout.SetLayoutBounds(GreenLight, new Rect(0.5, 0.91, 195, 200));
+        AbsoluteLayout.SetLayoutBounds(GreenLight, new Rect(0.5, 0.95, 195, 200));
         AbsoluteLayout.SetLayoutFlags(GreenLight, AbsoluteLayoutFlags.PositionProportional);
 
         AbsoluteLayout.SetLayoutBounds(valgusfoor, new Rect(0.5, 0.5, 400, 800));
@@ -83,11 +84,29 @@ public partial class Valgusfoor : ContentPage
             Aspect = Aspect.AspectFill,
             Padding = 0
         };
-        ControlButton.Clicked += ControlButton_Clicked;
+        ControlButton.Clicked += Button_Clicked;
 
-        AbsoluteLayout.SetLayoutBounds(ControlButton, new Rect(1.05, 1.02, 100, 100));
+        AbsoluteLayout.SetLayoutBounds(ControlButton, new Rect(1.05, 0.7, 100, 100));
         AbsoluteLayout.SetLayoutFlags(ControlButton, AbsoluteLayoutFlags.PositionProportional);
+        ControlButton.BackgroundColor = Colors.Green;
 
+        NightButton = new ImageButton
+        {
+            WidthRequest = 70,
+            HeightRequest = 70,
+            CornerRadius = 35,
+            Source = "night.png",
+            BackgroundColor = Colors.Transparent,
+            Aspect = Aspect.AspectFill,
+            Padding = 0
+        };
+        NightButton.Clicked += Button_Clicked;
+
+        AbsoluteLayout.SetLayoutBounds(NightButton, new Rect(1, 1, 70, 70));
+        AbsoluteLayout.SetLayoutFlags(NightButton, AbsoluteLayoutFlags.PositionProportional);
+        NightButton.BackgroundColor = Colors.Green;
+
+        absoluteLayout.Children.Add(NightButton);
         absoluteLayout.Children.Add(ControlButton);
 
         Content = absoluteLayout;
@@ -106,7 +125,7 @@ public partial class Valgusfoor : ContentPage
         };
     }
 
-    private void InitializeLights()
+    private void SetOffColors()
     {
         SetLightColor(RedLight, "#808080");
         SetLightColor(YellowLight, "#808080");
@@ -119,16 +138,58 @@ public partial class Valgusfoor : ContentPage
         light.Shadow = new Shadow { Brush = new SolidColorBrush(Color.FromArgb(hexColor)), Offset = new Point(0, 0), Radius = 20 };
     }
 
-    private async Task RunTrafficLightCycle(CancellationToken token)
+    private void Button_Clicked(object sender, EventArgs e)
+    {
+        if (sender == NightButton)
+        {
+            if (_isRunning)
+            {
+                cancelToken?.Cancel();
+                NightButton.BackgroundColor = Colors.Green;
+                ControlButton.BackgroundColor = Colors.Green;
+            }
+            else
+            {
+                cancelToken?.Cancel();
+                _isRunning = true;
+                cancelToken = new CancellationTokenSource();
+                RunRandomTrafficLightCycle(cancelToken.Token);
+                NightButton.BackgroundColor = Colors.Red;
+                ControlButton.BackgroundColor = Colors.Green;
+            }
+        }
+        else if (sender == ControlButton)
+        {
+            if (_isRunning)
+            {
+                cancelToken?.Cancel();
+                ControlButton.Source = "playicon.png";
+                ControlButton.BackgroundColor = Colors.Green;
+                NightButton.BackgroundColor = Colors.Green;
+            }
+            else
+            {
+                cancelToken?.Cancel();
+                _isRunning = true;
+                cancelToken = new CancellationTokenSource();
+                ControlButton.Source = "stopicon.png";
+                NightButton.BackgroundColor = Colors.Green;
+                ControlButton.BackgroundColor = Colors.Red;
+                RunTrafficLightCycle(cancelToken.Token);
+            }
+        }
+    }
+
+    private async void RunTrafficLightCycle(CancellationToken token)
     {
         _isRunning = true;
         try
         {
             while (!token.IsCancellationRequested)
             {
-                await SwitchRed(token);
-                await SwitchGreen(token);
-                await SwitchYellow(token);
+                await AnimateLight(RedLight, "#FF0000", 5000, token);
+                await AnimateLight(GreenLight, "#32CD32", 4000, token);
+                await AnimateLight(YellowLight, "#FFFF00", 2000, token);
             }
         }
         catch (OperationCanceledException) { }
@@ -138,23 +199,26 @@ public partial class Valgusfoor : ContentPage
         }
     }
 
-    private async Task SwitchRed(CancellationToken token)
+    private async void RunRandomTrafficLightCycle(CancellationToken token)
     {
-        _currentState = LightState.Red;
-        await AnimateLight(RedLight, "#FF0000", 5000, token);
+        _isRunning = true;
+        SetOffColors();
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                await AnimateLight(YellowLight, "#FFFF00", 1000, token);
+                await Task.Delay(1000, token);
+            }
+        }
+        catch (OperationCanceledException) { }
+        finally
+        {
+            _isRunning = false;
+            SetOffColors();
+        }
     }
 
-    private async Task SwitchGreen(CancellationToken token)
-    {
-        _currentState = LightState.Green;
-        await AnimateLight(GreenLight, "#32CD32", 4000, token);
-    }
-
-    private async Task SwitchYellow(CancellationToken token)
-    {
-        _currentState = LightState.Yellow;
-        await AnimateLight(YellowLight, "#FFFF00", 2000, token);
-    }
 
     private async Task AnimateLight(Frame targetLight, string activeColor, int duration, CancellationToken token)
     {
@@ -174,28 +238,9 @@ public partial class Valgusfoor : ContentPage
         SetLightColor(targetLight, "#808080"); 
     }
 
-
-    private void ControlButton_Clicked(object sender, EventArgs e)
-    {
-        if (_isRunning)
-        {
-            _cts?.Cancel();
-            ControlButton.Source = "playicon.png";
-            ControlButton.BackgroundColor = Colors.Green;
-        }
-        else
-        {
-            _isRunning = true;
-            _cts = new CancellationTokenSource();
-            ControlButton.Source = "stopicon.png";
-            ControlButton.BackgroundColor = Colors.Red;
-            _ = RunTrafficLightCycle(_cts.Token);
-        }
-    }
-
     protected override void OnDisappearing()
     {
-        _cts?.Cancel();
+        cancelToken?.Cancel();
         base.OnDisappearing();
     }
 }
