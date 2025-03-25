@@ -1,4 +1,5 @@
 ﻿using Microsoft.Maui.Layouts;
+using System.ComponentModel;
 using System.Drawing;
 
 namespace MauiProjectAnton;
@@ -11,12 +12,12 @@ public class TripsTraps : ContentPage
     Label statusLabel;
     Button gameControlButton;
     StackLayout mainLayout;
-    public enum Player { X, O }
-    private Player currentPlayer = Player.X;
+    public enum Player { X, O, Bot }
+    private Player currentPlayer;
+    private bool isBotTurn;
     private bool gameStarted = false;
-    private Label[,] cellLabels;
-    private int gridSize;
     private Random random = new Random();
+    private bool isProcessingMove = false;
 
     public TripsTraps()
     {
@@ -24,7 +25,6 @@ public class TripsTraps : ContentPage
         BackgroundColor = Colors.LightGray;
         MakeUI();
         gridSizePicker.SelectedIndexChanged += OnGridSizeChanged;
-        playersPicker.SelectedIndexChanged += OnPlayerModeChanged;
         MakeCells();
     }
 
@@ -115,7 +115,7 @@ public class TripsTraps : ContentPage
             FontSize = 28,
             FontAttributes = FontAttributes.Bold,
             TextColor = Colors.White,
-            BackgroundColor = Colors.DarkGreen,
+            BackgroundColor = Colors.Grey,
             Padding = new Thickness(10),
             HorizontalTextAlignment = TextAlignment.Center,
             VerticalTextAlignment = TextAlignment.Center,
@@ -128,7 +128,7 @@ public class TripsTraps : ContentPage
         gameControlButton = new Button
         {
             Text = "Start",
-            BackgroundColor = Colors.Gray,
+            BackgroundColor = Colors.DarkGreen,
             TextColor = Colors.White,
             CornerRadius = 10,
             HorizontalOptions = LayoutOptions.Fill,
@@ -136,7 +136,6 @@ public class TripsTraps : ContentPage
             HeightRequest = 50
         };
         gameControlButton.Clicked += OnGameControlClicked;
-        gameControlButton.IsEnabled = false;
 
         // main layout
         mainLayout = new StackLayout
@@ -156,19 +155,40 @@ public class TripsTraps : ContentPage
         Content = mainLayout;
     }
 
-    private void OnGameControlClicked(object sender, EventArgs e)
+    private void OnGridSizeChanged(object sender, EventArgs e)
+    {
+        MakeCells();
+    }
+
+    // starter
+    private async void OnGameControlClicked(object sender, EventArgs e)
     {
         if (gameStarted==false)
         {
-            gameControlButton.IsVisible = false;
-            currentPlayer = random.Next(2) == 0 ? Player.X : Player.O;
-            statusLabel.Text = $"Käik: {currentPlayer}";
-            
             gameStarted = true;
-            MakeCells();
+            gameControlButton.IsVisible = false;
+
+            if (playersPicker.SelectedIndex == 0)
+            {
+                currentPlayer = random.Next(2) == 0 ? Player.X : Player.O;
+                statusLabel.Text = $"Käik: {currentPlayer}";
+                MakeCells();
+                if (currentPlayer == Player.O)
+                {
+                    isBotTurn = true;
+                    await MakeBotMove();
+                }
+            }
+            else
+            {
+                currentPlayer = random.Next(2) == 0 ? Player.X : Player.O;
+                statusLabel.Text = $"Käik: {currentPlayer}";
+                MakeCells();
+            }
         }
     }
 
+    // grid maker
     private void MakeCells()
     {
         grid.Children.Clear();
@@ -213,74 +233,135 @@ public class TripsTraps : ContentPage
             }
         }
     }
-
-    private async void OnCellTapped(Frame cell)
+    // turn handler
+    private async Task OnCellTapped(Frame cell)
     {
-        if (!gameStarted) return;
-
+        if (!gameStarted || isProcessingMove || cell.Content is Image)
+            return;
+        isProcessingMove = true;
         Image image;
-        if (currentPlayer == Player.X)
+        try
         {
-            image = new Image
+            if (currentPlayer == Player.X)
             {
-                Source = "crossv2.gif",
-                Aspect = Aspect.AspectFit,
-                IsAnimationPlaying = true,
-            };
-            cell.Content = image;
-            await Task.Delay(1000);
-            image.Source = "crossplaceholder.png";
-            if (CheckForWin(currentPlayer))
+                image = new Image
+                {
+                    Source = "crossv2.gif",
+                    Aspect = Aspect.AspectFit,
+                    IsAnimationPlaying = true,
+                };
+                cell.Content = image;
+                await Task.Delay(1000);
+                image.Source = "crossplaceholder.png";
+            }
+            else
             {
-                await DisplayAlert("Mäng läbi", $"{currentPlayer} võitis!", "OK");
-                gameStarted = false;
-                gameControlButton.IsVisible = true;
+                image = new Image
+                {
+                    Source = "circlev4.gif",
+                    Aspect = Aspect.AspectFit,
+                    IsAnimationPlaying = true,
+                    Margin = new Thickness(15)
+                };
+                cell.Content = image;
+                await Task.Delay(600);
+                image.Source = "circleplaceholder.png";
+            }
+            if (CheckForWin(currentPlayer) || CheckForDraw())
+            {
+                EndGame();
                 return;
             }
+            if (playersPicker.SelectedIndex == 0 || isBotTurn)
+            {
+                isBotTurn = !isBotTurn;
+            }
+        }
+        finally
+        {
+            isProcessingMove = false;
             SwitchPlayer();
+        }
+    }
+    // switcher
+    private async void SwitchPlayer()
+    {
+        if (CheckForWin(currentPlayer) || CheckForDraw())
+        {
+            EndGame();
+            return;
+        }
+        currentPlayer = currentPlayer == Player.X ? Player.O : Player.X;
+        statusLabel.Text = $"Käik: {currentPlayer}";
+        statusLabel.BackgroundColor = (currentPlayer == Player.X) ? Colors.DarkRed : Colors.Black;
+
+        if (playersPicker.SelectedIndex == 0 && isBotTurn)
+        {
+            await MakeBotMove();
+        }
+    }
+    // bot
+    private async Task MakeBotMove()
+    {
+        if (!gameStarted)
+            return;
+        if (CheckForWin(Player.O) || CheckForDraw())
+            return;
+
+        var emptyCells = grid.Children
+            .OfType<Frame>()
+            .Where(f => f.Content is not Image)
+            .ToList();
+
+        if (emptyCells.Count > 0)
+        {
+            Frame botMove = FindWinningMove(Player.X) ??
+                            FindWinningMove(Player.O) ??
+                            emptyCells[random.Next(emptyCells.Count)];
+
+            await OnCellTapped(botMove);
+        }
+    }
+
+    private Frame FindWinningMove(Player player)
+    {
+        int size = grid.ColumnDefinitions.Count;
+        string targetImage = player == Player.X ? "crossplaceholder.png" : "circleplaceholder.png";
+
+        foreach (var child in grid.Children)
+        {
+            if (child is Frame frame && frame.Content is not Image)
+            {
+                frame.Content = new Image { Source = targetImage };
+                bool isWinning = CheckForWin(player);
+                frame.Content = null;
+
+                if (isWinning) return frame;
+            }
+        }
+        return null;
+    }
+
+    // game status
+
+    private void EndGame()
+    {
+        if (CheckForDraw())
+        {
+            statusLabel.Text = "Viik!";
+            statusLabel.BackgroundColor = Colors.DarkOrange;
+            DisplayAlert("Mäng läbi", "Mäng jäi viiki!", "OK");
+            gameStarted = false;
+            gameControlButton.IsVisible = true;
         }
         else
         {
-            image = new Image
-            {
-                Source = "circlev4.gif",
-                Aspect = Aspect.AspectFit,
-                IsAnimationPlaying = true,
-                Margin = new Thickness(15)
-            };
-            cell.Content = image;
-            await Task.Delay(600);
-            image.Source = "circleplaceholder.png";
-            if (CheckForWin(currentPlayer))
-            {
-                await DisplayAlert("Mäng läbi", $"{currentPlayer} võitis!", "OK");
-                gameStarted = false;
-                gameControlButton.IsVisible = true;
-                return;
-            }
-            SwitchPlayer();
+            statusLabel.Text = $"{currentPlayer} võitis!";
+            statusLabel.BackgroundColor = (currentPlayer == Player.X) ? Colors.DarkRed : Colors.Black;
+            DisplayAlert("Mäng läbi", $"{currentPlayer} võitis!", "OK");
+            gameStarted = false;
+            gameControlButton.IsVisible = true;
         }
-    }
-
-    public void OnPlayerModeChanged(object sender, EventArgs e)
-    {
-        if (playersPicker.SelectedIndex!=0)
-        {
-            gameControlButton.IsEnabled = true;
-            gameControlButton.BackgroundColor = Colors.Green;
-        }
-    }
-
-    private void SwitchPlayer()
-    {
-        currentPlayer = (currentPlayer == Player.X) ? Player.O : Player.X;
-        statusLabel.BackgroundColor = (currentPlayer == Player.X) ? Colors.DarkRed : Colors.Black;
-        statusLabel.Text = $"Käik: {currentPlayer}";
-    }
-
-    private void OnGridSizeChanged(object sender, EventArgs e)
-    {
-        MakeCells();
     }
 
     public bool CheckForWin(Player player)
@@ -320,4 +401,16 @@ public class TripsTraps : ContentPage
         return true;
     }
 
+    private bool CheckForDraw()
+    {
+        int size = grid.ColumnDefinitions.Count;
+        foreach (var child in grid.Children)
+        {
+            if (child is Frame frame && frame.Content is not Image)
+            {
+                return false;
+            }
+        }
+        return !CheckForWin(Player.X) && !CheckForWin(Player.O);
+    }
 }
