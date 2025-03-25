@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using Microsoft.Maui.Layouts;
+using System.Drawing;
 
 namespace MauiProjectAnton;
 
@@ -13,6 +14,7 @@ public class TripsTraps : ContentPage
     StackLayout mainLayout;
     public enum Player { X, O }
     private Player currentPlayer = Player.X;
+    private bool gameStarted = false;
 
     public TripsTraps()
     {
@@ -20,6 +22,7 @@ public class TripsTraps : ContentPage
         BackgroundColor = Colors.LightGray;
         MakeUI();
         gridSizePicker.SelectedIndexChanged += OnGridSizeChanged;
+        playersPicker.SelectedIndexChanged += OnPlayerModeChanged;
         MakeCells();
     }
 
@@ -72,6 +75,7 @@ public class TripsTraps : ContentPage
             Items = { "3x3", "4x4", "5x5" },
             HorizontalOptions = LayoutOptions.Fill,
             VerticalOptions = LayoutOptions.Center,
+            VerticalTextAlignment = TextAlignment.Center,
             BackgroundColor = Colors.DarkGray,
             TextColor = Colors.Green,
             FontSize = 20,
@@ -113,25 +117,28 @@ public class TripsTraps : ContentPage
 
         statusLabel = new Label
         {
-            Text = "Someshit",
-            FontSize = 16,
+            Text = "Valike mängurežiim",
+            FontSize = 25,
+            HorizontalTextAlignment = TextAlignment.Center,
             VerticalTextAlignment = TextAlignment.Center,
-            HorizontalOptions = LayoutOptions.StartAndExpand
+            HorizontalOptions = LayoutOptions.Center,
+            VerticalOptions = LayoutOptions.Center
         };
 
         var statusLayout = new StackLayout
         {
             Orientation = StackOrientation.Horizontal,
+            HorizontalOptions = LayoutOptions.Fill,
+            VerticalOptions = LayoutOptions.Center,
             Children = { statusLabel, statusImage },
             Spacing = 10,
-            HorizontalOptions = LayoutOptions.Fill,
             Padding = new Thickness(10, 5)
         };
 
         // control
         gameControlButton = new Button
         {
-            Text = "Alusta",
+            Text = "Start",
             BackgroundColor = Colors.Gray,
             TextColor = Colors.White,
             CornerRadius = 10,
@@ -140,14 +147,15 @@ public class TripsTraps : ContentPage
             HeightRequest = 50
         };
         gameControlButton.Clicked += OnGameControlClicked;
+        gameControlButton.IsEnabled = false;
 
         // main layout
         mainLayout = new StackLayout
         {
             Children =
             {
-                pickersGrid,
                 statusLayout,
+                pickersGrid,
                 grid,
                 gameControlButton
             },
@@ -161,17 +169,22 @@ public class TripsTraps : ContentPage
 
     private void OnGameControlClicked(object sender, EventArgs e)
     {
-        if (gameControlButton.Text == "Algus")
+        if (gameStarted==false)
         {
-            gameControlButton.Text = "Tühista";
-            gameControlButton.BackgroundColor = Colors.Red;
-            statusLabel.Text = "Ход игрока X";
+            gameControlButton.IsVisible = false;
+
+            Random random = new Random();
+            currentPlayer = random.Next(2) == 0 ? Player.X : Player.O;
+
+            statusLabel.Text = $"Käik: {currentPlayer}";
+            statusImage.Source = currentPlayer == Player.X ? "crossplaceholder.png" : "circleplaceholder.png";
+
             MakeCells();
         }
         else
         {
-            gameControlButton.Text = "Algus";
-            gameControlButton.BackgroundColor = Colors.Green;
+            gameStarted = true; 
+            gameControlButton.IsVisible = true;
         }
     }
 
@@ -182,7 +195,7 @@ public class TripsTraps : ContentPage
         grid.ColumnDefinitions.Clear();
 
         int size = 3;
-        if (gridSizePicker.SelectedIndex >= 0)
+        if (gridSizePicker.SelectedIndex >= 0) // if grid size is selected
             size = int.Parse(gridSizePicker.SelectedItem.ToString().Split('x')[0]);
 
         for (int i = 0; i < size; i++)
@@ -206,11 +219,13 @@ public class TripsTraps : ContentPage
                     VerticalOptions = LayoutOptions.Fill
                 };
 
-                cell.GestureRecognizers.Add(new TapGestureRecognizer
+                if (gameStarted) // if game is started
                 {
-                    Command = new Command(() => OnCellTapped(cell))
-                });
-
+                    cell.GestureRecognizers.Add(new TapGestureRecognizer
+                    {
+                        Command = new Command(() => OnCellTapped(cell))
+                    });
+                }
                 grid.Children.Add(cell);
                 Grid.SetRow(cell, row);
                 Grid.SetColumn(cell, col);
@@ -222,6 +237,7 @@ public class TripsTraps : ContentPage
     {
         if (cell.Content is BoxView)
         {
+            Player previousPlayer = currentPlayer;
             SwitchPlayer();
             Image image;
 
@@ -252,6 +268,20 @@ public class TripsTraps : ContentPage
                 await Task.Delay(600);
                 image.Source = "circleplaceholder.png";
             }
+            if (CheckForWin(previousPlayer))
+            {
+                await DisplayAlert("Игра окончена", $"{previousPlayer} победил!", "OK");
+                gameStarted = false;
+            }
+        }
+    }
+
+    public void OnPlayerModeChanged(object sender, EventArgs e)
+    {
+        if (playersPicker.SelectedIndex!=0)
+        {
+            gameControlButton.IsEnabled = true;
+            gameControlButton.BackgroundColor = Colors.Green;
         }
     }
 
@@ -262,9 +292,45 @@ public class TripsTraps : ContentPage
 
     private void OnGridSizeChanged(object sender, EventArgs e)
     {
-        if (gameControlButton.Text == "Tühista")
-        {
-            MakeCells();
-        }
+        MakeCells();
     }
+
+    public bool CheckForWin(Player player)
+    {
+        int size = grid.ColumnDefinitions.Count;
+
+        string targetImage = player == Player.X
+            ? "crossplaceholder.png"
+            : "circleplaceholder.png";
+
+        for (int i = 0; i < size; i++)
+        {
+            if (CheckLine(i, 0, 0, 1, targetImage) || 
+                CheckLine(0, i, 1, 0, targetImage))  
+                return true;
+        }
+
+        // Проверка диагоналей
+        return CheckLine(0, 0, 1, 1, targetImage) ||  
+               CheckLine(0, size - 1, 1, -1, targetImage);
+    }
+
+    private bool CheckLine(int startRow, int startCol, int rowStep, int colStep, string targetImage)
+    {
+        int size = grid.ColumnDefinitions.Count;
+
+        for (int i = 0; i < size; i++)
+        {
+            int row = startRow + i * rowStep;
+            int col = startCol + i * colStep;
+
+            var cell = grid.Children.FirstOrDefault(c =>
+                Grid.GetRow(c) == row && Grid.GetColumn(c) == col) as Frame;
+
+            if (cell?.Content is not Image image || image.Source?.ToString() != targetImage)
+                return false;
+        }
+        return true;
+    }
+
 }
