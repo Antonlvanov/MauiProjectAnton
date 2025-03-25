@@ -8,13 +8,15 @@ public class TripsTraps : ContentPage
     Grid grid;
     Picker playersPicker;
     Picker gridSizePicker;
-    Image statusImage;
     Label statusLabel;
     Button gameControlButton;
     StackLayout mainLayout;
     public enum Player { X, O }
     private Player currentPlayer = Player.X;
     private bool gameStarted = false;
+    private Label[,] cellLabels;
+    private int gridSize;
+    private Random random = new Random();
 
     public TripsTraps()
     {
@@ -107,32 +109,19 @@ public class TripsTraps : ContentPage
         Grid.SetColumn(gridSizePicker, 1);
 
         // status
-        statusImage = new Image
-        {
-            Source = "status_icon.png",
-            HeightRequest = 30,
-            WidthRequest = 30,
-            VerticalOptions = LayoutOptions.Center
-        };
-
         statusLabel = new Label
         {
             Text = "Valike mängurežiim",
-            FontSize = 25,
+            FontSize = 28,
+            FontAttributes = FontAttributes.Bold,
+            TextColor = Colors.White,
+            BackgroundColor = Colors.DarkGreen,
+            Padding = new Thickness(10),
             HorizontalTextAlignment = TextAlignment.Center,
             VerticalTextAlignment = TextAlignment.Center,
-            HorizontalOptions = LayoutOptions.Center,
-            VerticalOptions = LayoutOptions.Center
-        };
-
-        var statusLayout = new StackLayout
-        {
-            Orientation = StackOrientation.Horizontal,
             HorizontalOptions = LayoutOptions.Fill,
-            VerticalOptions = LayoutOptions.Center,
-            Children = { statusLabel, statusImage },
-            Spacing = 10,
-            Padding = new Thickness(10, 5)
+            VerticalOptions = LayoutOptions.Start,
+            Margin = new Thickness(0, 20, 0, 10)
         };
 
         // control
@@ -154,7 +143,7 @@ public class TripsTraps : ContentPage
         {
             Children =
             {
-                statusLayout,
+                statusLabel,
                 pickersGrid,
                 grid,
                 gameControlButton
@@ -172,19 +161,11 @@ public class TripsTraps : ContentPage
         if (gameStarted==false)
         {
             gameControlButton.IsVisible = false;
-
-            Random random = new Random();
             currentPlayer = random.Next(2) == 0 ? Player.X : Player.O;
-
             statusLabel.Text = $"Käik: {currentPlayer}";
-            statusImage.Source = currentPlayer == Player.X ? "crossplaceholder.png" : "circleplaceholder.png";
-
+            
+            gameStarted = true;
             MakeCells();
-        }
-        else
-        {
-            gameStarted = true; 
-            gameControlButton.IsVisible = true;
         }
     }
 
@@ -235,44 +216,49 @@ public class TripsTraps : ContentPage
 
     private async void OnCellTapped(Frame cell)
     {
-        if (cell.Content is BoxView)
+        if (!gameStarted) return;
+
+        Image image;
+        if (currentPlayer == Player.X)
         {
-            Player previousPlayer = currentPlayer;
-            SwitchPlayer();
-            Image image;
-
-            if (currentPlayer == Player.X)
+            image = new Image
             {
-                image = new Image
-                {
-                    Source = "crossv2.gif",
-                    Aspect = Aspect.AspectFit,
-                    IsAnimationPlaying = true,
-                };
-
-                cell.Content = image;
-                await Task.Delay(1000);
-                image.Source = "crossplaceholder.png";
-            }
-            else
+                Source = "crossv2.gif",
+                Aspect = Aspect.AspectFit,
+                IsAnimationPlaying = true,
+            };
+            cell.Content = image;
+            await Task.Delay(1000);
+            image.Source = "crossplaceholder.png";
+            if (CheckForWin(currentPlayer))
             {
-                image = new Image
-                {
-                    Source = "circlev4.gif",
-                    Aspect = Aspect.AspectFit,
-                    IsAnimationPlaying = true,
-                    Margin = new Thickness(15)
-                };
-
-                cell.Content = image;
-                await Task.Delay(600);
-                image.Source = "circleplaceholder.png";
-            }
-            if (CheckForWin(previousPlayer))
-            {
-                await DisplayAlert("Игра окончена", $"{previousPlayer} победил!", "OK");
+                await DisplayAlert("Mäng läbi", $"{currentPlayer} võitis!", "OK");
                 gameStarted = false;
+                gameControlButton.IsVisible = true;
+                return;
             }
+            SwitchPlayer();
+        }
+        else
+        {
+            image = new Image
+            {
+                Source = "circlev4.gif",
+                Aspect = Aspect.AspectFit,
+                IsAnimationPlaying = true,
+                Margin = new Thickness(15)
+            };
+            cell.Content = image;
+            await Task.Delay(600);
+            image.Source = "circleplaceholder.png";
+            if (CheckForWin(currentPlayer))
+            {
+                await DisplayAlert("Mäng läbi", $"{currentPlayer} võitis!", "OK");
+                gameStarted = false;
+                gameControlButton.IsVisible = true;
+                return;
+            }
+            SwitchPlayer();
         }
     }
 
@@ -288,6 +274,8 @@ public class TripsTraps : ContentPage
     private void SwitchPlayer()
     {
         currentPlayer = (currentPlayer == Player.X) ? Player.O : Player.X;
+        statusLabel.BackgroundColor = (currentPlayer == Player.X) ? Colors.DarkRed : Colors.Black;
+        statusLabel.Text = $"Käik: {currentPlayer}";
     }
 
     private void OnGridSizeChanged(object sender, EventArgs e)
@@ -305,13 +293,12 @@ public class TripsTraps : ContentPage
 
         for (int i = 0; i < size; i++)
         {
-            if (CheckLine(i, 0, 0, 1, targetImage) || 
-                CheckLine(0, i, 1, 0, targetImage))  
+            if (CheckLine(i, 0, 0, 1, targetImage) ||
+                CheckLine(0, i, 1, 0, targetImage))
                 return true;
         }
 
-        // Проверка диагоналей
-        return CheckLine(0, 0, 1, 1, targetImage) ||  
+        return CheckLine(0, 0, 1, 1, targetImage) ||
                CheckLine(0, size - 1, 1, -1, targetImage);
     }
 
@@ -324,10 +311,10 @@ public class TripsTraps : ContentPage
             int row = startRow + i * rowStep;
             int col = startCol + i * colStep;
 
-            var cell = grid.Children.FirstOrDefault(c =>
-                Grid.GetRow(c) == row && Grid.GetColumn(c) == col) as Frame;
+            var cell = grid.Children.OfType<Frame>().FirstOrDefault(c =>
+                Grid.GetRow((BindableObject)c) == row && Grid.GetColumn((BindableObject)c) == col);
 
-            if (cell?.Content is not Image image || image.Source?.ToString() != targetImage)
+            if (cell?.Content is not Image image || image.Source is not FileImageSource fileImage || fileImage.File != targetImage)
                 return false;
         }
         return true;
