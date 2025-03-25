@@ -286,11 +286,6 @@ public class TripsTraps : ContentPage
     // switcher
     private async void SwitchPlayer()
     {
-        if (CheckForWin(currentPlayer) || CheckForDraw())
-        {
-            EndGame();
-            return;
-        }
         currentPlayer = currentPlayer == Player.X ? Player.O : Player.X;
         statusLabel.Text = $"Käik: {currentPlayer}";
         statusLabel.BackgroundColor = (currentPlayer == Player.X) ? Colors.DarkRed : Colors.Black;
