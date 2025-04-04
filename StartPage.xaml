@@ -53,6 +53,11 @@
                 Text="TripsTraps"
                 Clicked="NavigateToTripsTrapsPage"
                 Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="Kontaktid"
+                Clicked="NavigateToKontaktiAndmedPage"
+                Style="{StaticResource NavButton}"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
