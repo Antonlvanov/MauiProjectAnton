@@ -58,6 +58,11 @@
                 Text="Kontaktid"
                 Clicked="NavigateToKontaktiAndmedPage"
                 Style="{StaticResource NavButton}"/>
+
+            <Button 
+                Text="Riikid"
+                Clicked="NavigateToRiikidPage"
+                Style="{StaticResource NavButton}"/>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

@@ -27,6 +27,7 @@ namespace MauiProjectAnton
             Routing.RegisterRoute(nameof(PickerImagePage), typeof(PickerImagePage));
             Routing.RegisterRoute(nameof(PopUpPage), typeof(PopUpPage));
             Routing.RegisterRoute(nameof(KontaktiAndmed), typeof(KontaktiAndmed));
+            Routing.RegisterRoute(nameof(Riikid), typeof(Riikid));
             // Routing.RegisterRoute(nameof(Test), typeof(Test));
         }
         private async void OpenKontaktiAndmed(object sender, EventArgs e)

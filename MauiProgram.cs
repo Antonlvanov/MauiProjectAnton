@@ -23,7 +23,10 @@ namespace MauiProjectAnton
                 options.UseSqlite($"Filename={dbPath}"), ServiceLifetime.Scoped);
             builder.Services.AddSingleton<AppShell>(); 
             builder.Services.AddSingleton<App>();
+
+            builder.Services.AddSingleton<CountryService>();
             builder.Services.AddTransient<KontaktiAndmed>();
+            builder.Services.AddTransient<Riikid>();
 
             var app = builder.Build();
 

@@ -93,4 +93,12 @@ public partial class StartPage : ContentPage
         await Shell.Current.GoToAsync(nameof(KontaktiAndmed));
         await button.ScaleTo(1, 50, Easing.Linear);
     }
+
+    private async void NavigateToRiikidPage(object sender, EventArgs e)
+    {
+        var button = sender as Button;
+        await button.ScaleTo(0.95, 50, Easing.Linear);
+        await Shell.Current.GoToAsync(nameof(Riikid));
+        await button.ScaleTo(1, 50, Easing.Linear);
+    }
 }
