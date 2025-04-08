@@ -29,29 +29,6 @@ namespace MauiProjectAnton
             CreateUI();
             LoadCountriesFromDb();
         }
-        private async Task<bool> IsInternetAvailable()
-        {
-            try
-            {
-                // Проверяем доступность сети
-                var current = Connectivity.NetworkAccess;
-                if (current != NetworkAccess.Internet)
-                {
-                    return false;
-                }
-
-                // Дополнительная проверка через ping (опционально)
-                using (var ping = new System.Net.NetworkInformation.Ping())
-                {
-                    var reply = await ping.SendPingAsync("8.8.8.8", 3000); // Google DNS
-                    return reply.Status == System.Net.NetworkInformation.IPStatus.Success;
-                }
-            }
-            catch
-            {
-                return false;
-            }
-        }
 
         private void CreateUI()
         {
@@ -65,7 +42,7 @@ namespace MauiProjectAnton
 
             loadButton = new Button
             {
-                Text = "Загрузить страны",
+                Text = "Laadi riigid",
                 HorizontalOptions = LayoutOptions.Center,
                 Margin = new Thickness(0, 20)
             };
@@ -74,9 +51,7 @@ namespace MauiProjectAnton
             countriesCollection = new CollectionView
             {
                 SelectionMode = SelectionMode.Single,
-                VerticalScrollBarVisibility = ScrollBarVisibility.Always,
                 VerticalOptions = LayoutOptions.FillAndExpand,
-                HeightRequest = 500, // Фиксированная высота для скролла
                 ItemTemplate = new DataTemplate(() =>
                 {
                     var flagImage = new Image
@@ -84,7 +59,6 @@ namespace MauiProjectAnton
                         WidthRequest = 50,
                         HeightRequest = 30,
                         Aspect = Aspect.AspectFill,
-                        Source = "placeholder_flag.png" // Локальный файл-заглушка
                     };
                     flagImage.SetBinding(Image.SourceProperty, new Binding("Flag",
                         converter: new UriToImageSourceConverter()));
@@ -97,28 +71,63 @@ namespace MauiProjectAnton
                     };
                     nameLabel.SetBinding(Label.TextProperty, "Name");
 
-                    var capitalLabel = new Label
+                    var regionLabel = new Label
                     {
-                        FontSize = 14,
+                        FontSize = 12,
+                        VerticalOptions = LayoutOptions.Center,
+                        TextColor = Colors.Gray
+                    };
+                    regionLabel.SetBinding(Label.TextProperty, "Region");
+
+                    // Добавляем подпись для столицы
+                    var capitalLayout = new HorizontalStackLayout
+                    {
+                        Spacing = 5,
                         VerticalOptions = LayoutOptions.Center
                     };
-                    capitalLabel.SetBinding(Label.TextProperty, "Capital");
-
-                    var populationLabel = new Label
+                    capitalLayout.Children.Add(new Label
+                    {
+                        Text = "Pealinn:",
+                        FontAttributes = FontAttributes.Bold,
+                        FontSize = 12
+                    });
+                    var capitalValueLabel = new Label
                     {
                         FontSize = 12,
                         VerticalOptions = LayoutOptions.Center
                     };
-                    populationLabel.SetBinding(Label.TextProperty, new Binding("Population", stringFormat: "{0:N0}"));
+                    capitalValueLabel.SetBinding(Label.TextProperty, "Capital");
+                    capitalLayout.Children.Add(capitalValueLabel);
+
+                    var populationLayout = new HorizontalStackLayout
+                    {
+                        Spacing = 5,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+                    populationLayout.Children.Add(new Label
+                    {
+                        Text = "Rahvaarv:",
+                        FontAttributes = FontAttributes.Bold,
+                        FontSize = 12
+                    });
+                    var populationValueLabel = new Label
+                    {
+                        FontSize = 12,
+                        VerticalOptions = LayoutOptions.Center
+                    };
+                    populationValueLabel.SetBinding(Label.TextProperty, new Binding("Population", stringFormat: "{0:N0}"));
+                    populationLayout.Children.Add(populationValueLabel);
 
                     var textLayout = new VerticalStackLayout
                     {
                         Padding = new Thickness(10, 0),
-                        VerticalOptions = LayoutOptions.Center
+                        VerticalOptions = LayoutOptions.Center,
+                        Spacing = 2
                     };
                     textLayout.Children.Add(nameLabel);
-                    textLayout.Children.Add(capitalLabel);
-                    textLayout.Children.Add(populationLabel);
+                    textLayout.Children.Add(regionLabel);
+                    textLayout.Children.Add(capitalLayout);
+                    textLayout.Children.Add(populationLayout);
 
                     var grid = new Grid
                     {
@@ -136,36 +145,52 @@ namespace MauiProjectAnton
                 })
             };
 
-            // Обработчик нажатия на элемент
             countriesCollection.SelectionChanged += OnCountrySelected;
 
-            Content = new ScrollView // Основной ScrollView
+            var mainGrid = new Grid
             {
-                Content = new StackLayout
+                RowDefinitions =
                 {
-                    Children =
-            {
-                loadButton,
-                loadingIndicator,
-                new ScrollView // ScrollView для списка стран
-                {
-                    VerticalOptions = LayoutOptions.FillAndExpand,
-                    Content = countriesCollection
-                }
-            }
+                    new RowDefinition { Height = GridLength.Star },
+                    new RowDefinition { Height = GridLength.Auto }
                 }
             };
+
+            var scrollView = new ScrollView
+                {
+                    Content = countriesCollection
+                };
+            Grid.SetRow(scrollView, 0);
+            mainGrid.Children.Add(scrollView);
+
+            var bottomPanel = new VerticalStackLayout
+            {
+                Children =
+                {
+                    loadingIndicator,
+                    loadButton
+                },
+                Spacing = 10,
+                Padding = 10
+            };
+            Grid.SetRow(bottomPanel, 1);
+            mainGrid.Children.Add(bottomPanel);
+
+            Content = mainGrid;
         }
 
         private void OnCountrySelected(object sender, SelectionChangedEventArgs e)
         {
             if (e.CurrentSelection.FirstOrDefault() is Country selectedCountry)
             {
-                DisplayAlert("Информация",
-                    $"{selectedCountry.Name}\nСтолица: {selectedCountry.Capital}\nНаселение: {selectedCountry.Population:N0}",
+                DisplayAlert("Info",
+                    $"{selectedCountry.Name}\n" +
+                    $"Pealinn: {selectedCountry.Capital}\n" +
+                    $"Piirkond: {selectedCountry.Region}\n" +
+                    $"Rahvaarv: {selectedCountry.Population:N0}",
                     "OK");
             }
-            ((CollectionView)sender).SelectedItem = null; // Сбрасываем выбор
+            ((CollectionView)sender).SelectedItem = null;
         }
 
         private async void OnLoadCountriesClicked(object sender, EventArgs e)
@@ -189,12 +214,9 @@ namespace MauiProjectAnton
             {
                 string errorMessage = ex.Message;
 
-                // Добавляем внутреннее исключение если есть
                 if (ex.InnerException != null)
                 {
                     errorMessage += $"\nInner: {ex.InnerException.Message}";
-
-                    // Для SQLite ошибок
                     if (ex.InnerException is Microsoft.Data.Sqlite.SqliteException sqlEx)
                     {
                         errorMessage += $"\nSQL Error: {sqlEx.SqliteErrorCode}";
@@ -224,7 +246,6 @@ namespace MauiProjectAnton
                     return;
                 }
 
-                // Логируем первые 5 стран для проверки данных
                 foreach (var country in countriesList.Take(5))
                 {
                     Debug.WriteLine($"Country: {country.Name}, " +
@@ -247,13 +268,31 @@ namespace MauiProjectAnton
                 await DisplayAlert("Error", $"Failed to load from DB: {ex.Message}", "OK");
             }
         }
+
+        private async Task<bool> IsInternetAvailable()
+        {
+            try
+            {
+                var current = Connectivity.NetworkAccess;
+                if (current != NetworkAccess.Internet)
+                {
+                    return false;
+                }
+                using (var ping = new System.Net.NetworkInformation.Ping())
+                {
+                    var reply = await ping.SendPingAsync("8.8.8.8", 3000);
+                    return reply.Status == System.Net.NetworkInformation.IPStatus.Success;
+                }
+            }
+            catch
+            {
+                return false;
+            }
+        }
     }
 
     public class CountryService
     {
-        private const string ApiUrl = "http://api.countrylayer.com/v2/all";
-        private const string ApiKey = "96f822c6c22511926026e1e1333f97da";
-
         private readonly HttpClient _httpClient;
         private readonly AppDbContext _dbContext;
 
@@ -270,7 +309,7 @@ namespace MauiProjectAnton
                 using HttpClient client = new HttpClient();
                 string url = "https://restcountries.com/v3.1/all?fields=name,capital,flags,population,region,cca2";
                 var response = await client.GetStringAsync(url);
-                Debug.WriteLine($"API Response: {response}"); // Полный вывод для диагностики
+                //Debug.WriteLine($"API Response: {response}");
 
                 var apiCountries = JsonSerializer.Deserialize<List<ApiCountry>>(response);
 
@@ -280,12 +319,12 @@ namespace MauiProjectAnton
                     {
                         Name = c.name.common,
                         Capital = c.capital != null && c.capital.Any() ? c.capital[0] : "—",
-                        Flag = c.flags?.png ?? $"https://flagcdn.com/w160/{c.cca2?.ToLower()}.png",
+                        Flag = c.flags?.png,
                         Population = c.population,
                         Region = c.region
-                    });
+                    })
+                    .ToList();
 
-                // Проверка данных перед сохранением
                 foreach (var country in countries.Take(5))
                 {
                     Debug.WriteLine($"Preparing to save: {country.Name}, Pop: {country.Population}, Flag: {country.Flag}, ");
