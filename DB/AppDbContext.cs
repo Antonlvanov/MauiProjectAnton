@@ -35,25 +35,6 @@ namespace MauiProjectAnton
                 new Contact { Id = 4, Name = "Lupa", Phone = "+37251516516", Email = "vasili@vasili.com" },
                 new Contact { Id = 5, Name = "Pupa", Phone = "+3722323239", Email = "vasili@vasili.com" }
             );
-
-            modelBuilder.Entity<Country>()
-                .HasKey(c => c.Id);
-
-            modelBuilder.Entity<Country>()
-                .Property(c => c.Name)
-                .IsRequired();
-
-            modelBuilder.Entity<Country>()
-                .Property(c => c.Capital)
-                .HasDefaultValue("No Capital");
-
-            modelBuilder.Entity<Country>()
-                .Property(c => c.Population)
-                .HasDefaultValue(0);
-
-            modelBuilder.Entity<Country>()
-                .Property(c => c.Flag)
-                .HasDefaultValue("https://via.placeholder.com/50x30");
         }
     }
 }

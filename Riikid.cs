@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Maui.Controls;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -23,6 +24,7 @@ namespace MauiProjectAnton
 
         public Riikid(AppDbContext db)
         {
+            Title = "Riikid";
             _db = db;
             _countryService = new CountryService(_db);
             
@@ -43,8 +45,9 @@ namespace MauiProjectAnton
             loadButton = new Button
             {
                 Text = "Laadi riigid",
+                BackgroundColor = Colors.Black,
                 HorizontalOptions = LayoutOptions.Center,
-                Margin = new Thickness(0, 20)
+                Margin = new Thickness(0, 10)
             };
             loadButton.Clicked += OnLoadCountriesClicked;
 
@@ -60,8 +63,7 @@ namespace MauiProjectAnton
                         HeightRequest = 30,
                         Aspect = Aspect.AspectFill,
                     };
-                    flagImage.SetBinding(Image.SourceProperty, new Binding("Flag",
-                        converter: new UriToImageSourceConverter()));
+                    flagImage.SetBinding(Image.SourceProperty, "Flag");
 
                     var nameLabel = new Label
                     {
@@ -79,7 +81,6 @@ namespace MauiProjectAnton
                     };
                     regionLabel.SetBinding(Label.TextProperty, "Region");
 
-                    // Добавляем подпись для столицы
                     var capitalLayout = new HorizontalStackLayout
                     {
                         Spacing = 5,
@@ -151,17 +152,57 @@ namespace MauiProjectAnton
             {
                 RowDefinitions =
                 {
+                    new RowDefinition { Height = GridLength.Auto },
                     new RowDefinition { Height = GridLength.Star },
                     new RowDefinition { Height = GridLength.Auto }
-                }
+                },
+                BackgroundColor = Colors.LightGray
             };
 
-            var scrollView = new ScrollView
+            var imageSort = new Image
+            {
+                Source = "sort.png",
+                Aspect = Aspect.AspectFit,
+                BackgroundColor = Colors.White,
+                WidthRequest = 25,
+                HeightRequest = 25,
+                Margin = new Thickness(7,3,5,3)
+            };
+
+            var topPanel = new HorizontalStackLayout
+            {
+                Spacing = 5,
+                Children =
                 {
-                    Content = countriesCollection
-                };
-            Grid.SetRow(scrollView, 0);
-            mainGrid.Children.Add(scrollView);
+                    imageSort,
+                    CreateSortButton("Nimi", "Name"),
+                    CreateSortButton("Rahvaarv", "Population"),
+                    CreateSortButton("Piirkond", "Region")
+                },
+                BackgroundColor = Colors.White,
+            };
+
+            var framedTopPanel = new Frame
+            {
+                Content = topPanel,
+                BorderColor = Colors.Gray,
+                CornerRadius = 10,
+                HasShadow = false,
+                Padding = 0,
+                Margin = new Thickness(30, 30, 30, 0),
+                BackgroundColor = Colors.White
+            };
+
+            var framedCollectionView = new Frame
+            {
+                Content = countriesCollection,
+                BorderColor = Colors.Gray,
+                CornerRadius = 10,
+                HasShadow = false,
+                Padding = 0,
+                Margin = new Thickness(30, 0, 30, 0),
+                BackgroundColor = Colors.White
+            };
 
             var bottomPanel = new VerticalStackLayout
             {
@@ -170,10 +211,14 @@ namespace MauiProjectAnton
                     loadingIndicator,
                     loadButton
                 },
-                Spacing = 10,
-                Padding = 10
             };
-            Grid.SetRow(bottomPanel, 1);
+
+            Grid.SetRow(framedTopPanel, 0);
+            Grid.SetRow(framedCollectionView, 1);
+            Grid.SetRow(bottomPanel, 2);
+
+            mainGrid.Children.Add(framedTopPanel);
+            mainGrid.Children.Add(framedCollectionView);
             mainGrid.Children.Add(bottomPanel);
 
             Content = mainGrid;
@@ -193,6 +238,41 @@ namespace MauiProjectAnton
             ((CollectionView)sender).SelectedItem = null;
         }
 
+        private void SortCountries(string sortProperty)
+        {
+            var sortedList = countriesCollection.ItemsSource.Cast<Country>().ToList();
+
+            switch (sortProperty)
+            {
+                case "Name":
+                    sortedList = sortedList.OrderBy(c => c.Name).ToList();
+                    break;
+                case "Population":
+                    sortedList = sortedList.OrderByDescending(c => c.Population).ToList();
+                    break;
+                case "Region":
+                    sortedList = sortedList.OrderBy(c => c.Region).ThenBy(c => c.Name).ToList();
+                    break;
+            }
+
+            countriesCollection.ItemsSource = sortedList;
+        }
+
+        private Button CreateSortButton(string text, string sortProperty)
+        {
+            return new Button
+            {
+                Text = text,
+                BackgroundColor = Colors.Transparent,
+                TextColor = Colors.Black,
+                FontSize = 12,
+                Padding = new Thickness(10, 5),
+                Margin = new Thickness(5, 0),
+                CornerRadius = 5,
+                Command = new Command(() => SortCountries(sortProperty))
+            };
+        }
+
         private async void OnLoadCountriesClicked(object sender, EventArgs e)
         {
             loadingIndicator.IsVisible = true;
@@ -201,12 +281,6 @@ namespace MauiProjectAnton
 
             try
             {
-                if (!await IsInternetAvailable())
-                {
-                    await DisplayAlert("Ошибка", "Отсутствует подключение к интернету", "OK");
-                    return;
-                }
-
                 await _countryService.LoadCountriesAsync();
                 await LoadCountriesFromDb();
             }
@@ -223,7 +297,7 @@ namespace MauiProjectAnton
                     }
                 }
 
-                await DisplayAlert("Ошибка", $"Не удалось загрузить страны:\n{errorMessage}", "OK");
+                await DisplayAlert("error", $"cant load pages error:\n{errorMessage}", "OK");
                 Debug.WriteLine($"Full error: {ex.ToString()}");
             }
             finally
@@ -266,27 +340,6 @@ namespace MauiProjectAnton
             {
                 Debug.WriteLine($"Error loading from DB: {ex}");
                 await DisplayAlert("Error", $"Failed to load from DB: {ex.Message}", "OK");
-            }
-        }
-
-        private async Task<bool> IsInternetAvailable()
-        {
-            try
-            {
-                var current = Connectivity.NetworkAccess;
-                if (current != NetworkAccess.Internet)
-                {
-                    return false;
-                }
-                using (var ping = new System.Net.NetworkInformation.Ping())
-                {
-                    var reply = await ping.SendPingAsync("8.8.8.8", 3000);
-                    return reply.Status == System.Net.NetworkInformation.IPStatus.Success;
-                }
-            }
-            catch
-            {
-                return false;
             }
         }
     }
@@ -369,30 +422,6 @@ namespace MauiProjectAnton
             var countries = await _dbContext.Countries.ToListAsync();
             Debug.WriteLine($"Loaded {countries.Count} countries from DB");
             return countries;
-        }
-    }
-
-    public class UriToImageSourceConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is string uriString && Uri.TryCreate(uriString, UriKind.Absolute, out var uri))
-            {
-                try
-                {
-                    return ImageSource.FromUri(uri);
-                }
-                catch
-                {
-                    return ImageSource.FromFile("placeholder_flag.png");
-                }
-            }
-            return ImageSource.FromFile("placeholder_flag.png");
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }
